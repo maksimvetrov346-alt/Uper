@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Uper</title>
+<style>
+:root { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+:root {
+  --bg: #f3f4f6; --card: #ffffff; --text: #14161a; --muted: #5b6370; --line: #dfe3ea;
+  --accent: #4f9a00; --on-accent: #ffffff; color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c0d10; --card: #16181d; --text: #f1f3f6; --muted: #9aa3b2; --line: #272b33;
+    --accent: #b8f23a; --on-accent: #0c0d10; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c0d10; --card: #16181d; --text: #f1f3f6; --muted: #9aa3b2; --line: #272b33;
+  --accent: #b8f23a; --on-accent: #0c0d10; color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 560px; margin: 0 auto; padding: 24px 16px 32px; }
+header { text-align: center; margin-bottom: 20px; }
+header img { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
+h1 { margin: 10px 0 2px; font-size: 26px; }
+.tag { margin: 0; color: var(--muted); }
+h2 { font-size: 18px; margin: 28px 0 10px; }
+.btn { display: block; width: 100%; padding: 13px 16px; margin-bottom: 10px; border-radius: 12px; border: 0;
+  background: var(--accent); color: var(--on-accent); font: inherit; font-weight: 600; text-align: center; text-decoration: none; cursor: pointer; }
+.btn.alt { background: transparent; color: var(--text); border: 1px solid var(--line); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 14px; }
+.top { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.top img { width: 56px; height: 56px; border-radius: 12px; image-rendering: pixelated; flex: none; }
+.top h3 { margin: 0; font-size: 18px; }
+.row { margin: 4px 0; }
+.row b { color: var(--muted); font-weight: 600; }
+details { margin-top: 10px; }
+summary { list-style: none; }
+summary::-webkit-details-marker { display: none; }
+pre { margin: 0 0 10px; padding: 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line);
+  overflow-x: auto; font: 14px/1.6 ui-monospace, Menlo, Consolas, monospace; white-space: pre; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img id="avatar" alt="Uper">
+    <h1 id="name"></h1>
+    <p class="tag" id="tagline"></p>
+  </header>
+  <div id="links"></div>
+  <h2>Проекты</h2>
+  <div id="projects"></div>
+</main>
+<script>
+// ВСЁ, ЧТО МОЖНО РЕДАКТИРОВАТЬ, НАХОДИТСЯ В CONFIG НИЖЕ
+const ICONS = {
+  cat: "data:image/webp;base64,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",
+  scales: "data:image/webp;base64,UklGRjwBAABXRUJQVlA4IDABAABQEwCdASqAAIAAPlUgjEUjoiEbdAA4BUS0gxQB+gH6AfwBpgX4B+AAoofwB/APwA/QD+E/t7H+Z+k4dCwDYhKWI5ezkM2WmY+H9kkChnN9fmHjSt6VP7OcDJX+QeYB10eog3zATZ+NGh2OAj0MStWgKsVQ1S/Ke1LYCrwjqGt1oi7PFWv/Q6jmDWKplvh9m2TwLpoYeGIM0C3t5701MOauzos4AP78qBZ+ilNn0YP930VK3E76Nm//0Sf403nOlKId//Honf0PHejZv/9Eh+iPvXca9SP2LxvIZN+fXln13CtJRxLbCMRmrevLPrug+jFPRivl9v///R8PLovYk/RIPoxT0Yr5fb///0fHN0XF9ExfF87eicPRJHocGF6Jw9EkaSkA6+jS/RiDosVAAAAA",
+  ups: "data:image/webp;base64,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"
+};
+
+const CONFIG = {
+  name: "Uper",
+  tagline: "Мои соцсети и проекты",
+  links: [
+    { title: "YouTube", url: "https://www.youtube.com/@UperCoder" },
+    { title: "Канал в Max", url: "https://max.ru/join/EzjN8opnesyLxdrVRB4LATbDwgbz9r22zJnLlNL62nI" }
+  ],
+  projects: [
+    {
+      title: "Physical Impossibility",
+      icon: "scales",
+      info: [
+        ["Версия", "1.1.0"],
+        ["Обновление", "20-25 ноября"],
+        ["Описание", "расставляйте фигуры, проводите игрока и собирайте награду."]
+      ],
+      download: "https://www.rustore.ru/catalog/app/com.rather.game1"
+    },
+    {
+      title: "Ups",
+      icon: "ups",
+      info: [
+        ["Версия", "на стадии разработки"],
+        ["Что это", "язык программирования"],
+        ["Примерная дата выхода", "2027 год январь"]
+      ],
+      syntax: [
+        "sp — создать переменную",
+        "pnt() — вывести текст в консоль",
+        "web open() — открывает ссылки"
+      ]
+    }
+  ]
+};
+
+function el(tag, props, children) {
+  const node = document.createElement(tag);
+  Object.assign(node, props || {});
+  (children || []).forEach(function (c) { node.append(c); });
+  return node;
+}
+
+document.getElementById("avatar").src = ICONS.cat;
+document.getElementById("name").textContent = CONFIG.name;
+document.getElementById("tagline").textContent = CONFIG.tagline;
+
+const links = document.getElementById("links");
+CONFIG.links.forEach(function (l) {
+  links.append(el("a", { className: "btn", href: l.url, target: "_blank", rel: "noopener", textContent: l.title }));
+});
+
+const list = document.getElementById("projects");
+CONFIG.projects.forEach(function (p) {
+  const card = el("div", { className: "card" });
+  card.append(el("div", { className: "top" }, [
+    el("img", { src: ICONS[p.icon], alt: "" }),
+    el("h3", { textContent: p.title })
+  ]));
+  p.info.forEach(function (pair) {
+    card.append(el("div", { className: "row" }, [el("b", { textContent: pair[0] + ": " }), pair[1]]));
+  });
+  if (p.download) {
+    const dl = el("a", { className: "btn", href: p.download, target: "_blank", rel: "noopener", textContent: "Скачать" });
+    dl.style.marginTop = "12px";
+    dl.style.marginBottom = "0";
+    card.append(dl);
+  }
+  if (p.syntax) {
+    card.append(el("details", {}, [
+      el("summary", { className: "btn alt", textContent: "Синтаксис" }),
+      el("pre", { textContent: p.syntax.join("\n") })
+    ]));
+  }
+  list.append(card);
+});
+</script>
+</body>
+</html>
